@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        /* Стили */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin-left: 5%;
+            margin-right: 5%;
+            padding: 0;
+        }
+
+        #user-projects {
+            margin-top: 20px;
+        }
+
+        #user-projects h2 {
+            margin-bottom: 10px;
+        }
+
+        #projects-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #projects-list li {
+            width: 70%;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            width: 24.7%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: lightgrey;
+            color: black;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: lightblue;
+        }
+
+        #random-fact{
+            position: fixed;
+            width: auto;
+            margin-left:50%;
+            margin-right:10%;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Случайный факт -->
+<div id="random-fact">
+</div>
+
+<h1>My Profile</h1>
+
+<div id="user-info">
+    <h1>Welcome, {{ user.firstName }} {{ user.lastName }}!</h1>
+    <p>Age: {{ user.age }}</p>
+    <p>Country: {{ user.country }}</p>
+    <p>Gender: {{ user.gender }}</p>
+</div>
+
+<!-- Список проектов -->
+<div id="user-projects">
+    <h2>User's project</h2>
+    <ul id="projects-list"></ul>
+</div>
+
+<!-- Форма для создания проекта -->
+<form id="projectForm" action="/projects" method="POST">
+    <label for="title">Project name:</label>
+    <input type="text" id="title" name="title" required><br>
+    <label for="description">Project description:</label><br>
+    <textarea id="description" name="description" rows="4" cols="50" required></textarea><br>
+    <button type="submit">Create project</button>
+</form>
+
+<form action="/logout" method="GET">
+    <button type="submit">Logout</button>
+</form>
+
+<script>
+    // Обработка загрузки страницы
+    window.onload = () => {
+        loadProjects();
+        loadRandomFact();
+    };
+
+    // Функция для загрузки проектов
+    async function loadProjects() {
+        try {
+            const response = await fetch('/projects');
+            const projects = await response.json();
+
+            const projectsList = document.getElementById('projects-list');
+            projectsList.innerHTML = ''; // Очищаем список перед добавлением новых проектов
+
+            projects.forEach(project => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${project.title}</strong><br><p>${project.description}</p>`;
+
+                // Создаем форму для удаления проекта
+                const deleteForm = document.createElement('form');
+                deleteForm.action = `/projects/${project._id}/delete`;
+                deleteForm.method = 'POST';
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'submit';
+                deleteButton.textContent = 'Удалить проект';
+                deleteForm.appendChild(deleteButton);
+
+                // Добавляем форму в элемент списка
+                listItem.appendChild(deleteForm);
+
+                // Добавляем элемент списка в список проектов
+                projectsList.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error('Failed to fetch projects:', error);
+        }
+    }
+
+    // Функция для загрузки случайного факта
+    async function loadRandomFact() {
+        try {
+            const response = await fetch('/random-fact');
+            const data = await response.json();
+            const randomFact = data[0].fact;
+
+            // Отобразить полученный случайный факт на странице
+            document.getElementById('random-fact').textContent = "Interesting Fact -> "+ randomFact;
+        } catch (error) {
+            console.error('Failed to fetch random fact:', error);
+        }
+    }
+
+</script>
+
+</body>
+</html>
